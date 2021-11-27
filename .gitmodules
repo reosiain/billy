@@ -1,0 +1,6 @@
+[submodule "rss_feed"]
+	path = rss_feed
+	url = https://github.com/reosiain/rss-feed.git
+[submodule "standing_bot"]
+	path = standing_bot
+	url = https://github.com/reosiain/telebilly.git
