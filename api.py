@@ -5,6 +5,9 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 import backend.open_trade
+from backend.trade_actions.active_trades_cache import Cache
+from backend.stats import trade_stats
+import backend.telegram_bot as tg
 
 app = FastAPI()
 
@@ -13,14 +16,21 @@ class Item(BaseModel):
     first: bool
 
 
+global p2k
+global running_thread
+
+p2k = None
+running_thread = None
+
 @app.get("/billy/run")
 def run():
 
     global p2k
     global running_thread
 
-    if running_thread.is_alive():
-        return {"message": "already running"}
+    if running_thread is not None:
+        if running_thread.is_alive():
+            return {"message": "already running"}
 
     p2k = threading.Event()
     running_thread = threading.Thread(
@@ -39,7 +49,10 @@ def shut():
     global p2k
     global running_thread
 
-    if not running_thread.is_alive():
+    if running_thread is not None:
+        if not running_thread.is_alive():
+            return {"message": "not running"}
+    else:
         return {"message": "not running"}
 
     p2k.set()
@@ -52,8 +65,9 @@ def status():
 
     global running_thread
 
-    if running_thread.is_alive():
-        return {"message": "running"}
+    if running_thread is not None:
+        if running_thread.is_alive():
+            return {"message": "running"}
     else:
         return {"message": "not running"}
 
@@ -66,6 +80,21 @@ def shut():
         return {"message": 'closed'}
     except Exception:
         return {"message": 'error'}
+
+@app.get("/billy/cache/read_names")
+def read_cache():
+    list_ = []
+    actives = Cache.read()
+    if len(actives) == 0:
+        return {"cache": []}
+    for item in actives:
+        list_.append(item.__str__())
+    return {"cache": list_}
+
+@app.get("/billy/stats/todays_return")
+def todays_return():
+    val = trade_stats.get_daily_cum_return()
+    return {"stats": val}
 
 @app.get("/billy/ping")
 def list_source():

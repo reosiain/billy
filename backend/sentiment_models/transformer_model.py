@@ -7,7 +7,7 @@ import requests
 def predict(text: str) -> int:
 
     host = os.getenv("SENT_APP_HOST") + ":1001"
-    url = f"{host}/sentiment/predict_many"
+    url = f"http://{host}/sentiment/predict_many"
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     data = json.dumps({'text': text})
     _ = requests.post(url, data = data, headers=headers)
@@ -21,7 +21,7 @@ def predict(text: str) -> int:
 def predict_one(text: str) -> int:
 
     host = os.getenv("SENT_APP_HOST") + ":1001"
-    url = f"{host}/sentiment/predict_one"
+    url = f"http://{host}/sentiment/predict_one"
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     data = json.dumps({'text': text})
     _ = requests.post(url, data = data, headers=headers)

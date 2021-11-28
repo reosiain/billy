@@ -8,7 +8,7 @@ import requests
 def sentiment_weighted_text_embedding(text, separator="|@|"):
 
     host = os.getenv("SENT_APP_HOST") + ":1001"
-    url = f"{host}/sentiment/weighted_embedding"
+    url = f"http://{host}/sentiment/weighted_embedding"
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     data = json.dumps({'text': text})
     _ = requests.post(url, data=data, headers=headers)
@@ -22,7 +22,7 @@ def sentiment_weighted_text_embedding(text, separator="|@|"):
 def averaged_text_embedding(text, separator="|@|"):
 
     host = os.getenv("SENT_APP_HOST") + ":1001"
-    url = f"{host}/sentiment/average_embedding"
+    url = f"http://{host}/sentiment/average_embedding"
     headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
     data = json.dumps({'text': text})
     _ = requests.post(url, data = data, headers=headers)
