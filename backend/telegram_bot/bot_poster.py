@@ -1,18 +1,15 @@
 import pathlib
 from enum import Enum
+import os
 
 import requests
 import telegram
-import yaml
 from loguru import logger
 
-from backend.utils import params
-
-config = yaml.safe_load(open(params.tg_token, "rb"))
-TOKEN = config["access_token"]
-CHANNEL_ID = config["channel_id"]
-TOKEN_TECHNICAL = config["access_token_van"]
-PERSONAL_CHAT_ID = config["my_chat_id"]
+TOKEN = os.getenv('BILLY_BOT_TOKEN')
+CHANNEL_ID = os.getenv('CHANNEL_ID')
+TOKEN_TECHNICAL = os.getenv('VAN_BOT_TOKEN')
+PERSONAL_CHAT_ID = os.getenv('PERSONAL_CHAT_ID')
 
 
 class Messages(Enum):

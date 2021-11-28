@@ -1,6 +1,5 @@
 import datetime
 
-import backend.utils.custom_now
 from backend import utils
 from backend.dbio import db_client as db
 

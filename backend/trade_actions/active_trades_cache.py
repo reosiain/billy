@@ -1,7 +1,5 @@
 import pickle
-
 from loguru import logger
-
 from backend.utils import params
 
 
@@ -27,7 +25,6 @@ class Cache:
 
     @staticmethod
     def remove(trade):
-
         trades: list = Cache.read()
         trades_copy = trades.copy()
         deleted = False

@@ -1,11 +1,12 @@
 import datetime
-import pickle
+import json
 import typing
 
 import backend.telegram_bot.bot_poster as tbot
 from backend.stats import trade_stats
 from backend.trade_actions.active_trades_cache import Cache
 from backend.trade_actions.trade_entity_class import Trade
+from backend.trade_actions.trade_entity_class import trade_to_dict
 from backend.utils import params
 
 
@@ -50,14 +51,13 @@ def should_open(trade: Trade) -> typing.Tuple[bool, float]:
             cum_ret=trade_stats.get_daily_cum_return(),
         )
 
-        tick = trade.ticker_relation
-        dt = datetime.datetime.now().strftime("%d%m%Y_%H%M%S")
-        sentim = trade.sentiment
-        with open(params.trades_dump / f"susp_{tick}_{dt}_{sentim}.bin", "wb") as file:
-            pickle.dump(trade, file)
-
+        _ = trade_to_dict(trade)
+        f_name = f"{_.ticker_relation}_{_.close_time.strftime('%d%m%Y_%H%M%S')}_{_.sentiment}.json"
+        with open(params.trades_dump / f_name, "w") as file:
+            json.dump(trade, file)
         Cache.remove(trd)
         return False
+
     elif (trade.ticker_relation, trade.is_long) in active_trades_and_directions:
         raise AlreadyOpenError(
             f"{trade.ticker_relation} with same direction is already open."

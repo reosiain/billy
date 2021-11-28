@@ -1,13 +1,11 @@
 import datetime
-
 import numpy as np
-from pymongo import MongoClient
+from backend.dbio.db_client import client
 
 import backend.sentiment_models.sentence_similarity as ss
 from backend.utils import custom_now
 from backend.utils import params
 
-client = MongoClient("localhost", 27017)
 context = client["trades"]["context"]
 
 

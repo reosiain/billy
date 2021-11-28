@@ -9,4 +9,3 @@ COPY --from=builder /root/.local /root/.local
 COPY / /code
 ENV PATH=/root/.local:$PATH:/code:/root/.local/bin
 RUN ls -lh .
-CMD [ "python", "entry_node.py" ]

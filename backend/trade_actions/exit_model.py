@@ -13,7 +13,6 @@ from backend.tinvest_api.functions import get_candles_by_ticker
 from backend.utils import params
 
 models_source_path = params.exit_model_path
-
 model = XGBClassifier()
 model.load_model(models_source_path)
 

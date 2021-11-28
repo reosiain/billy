@@ -19,7 +19,7 @@ from backend.trade_actions.trade_entity_class import (
     ContextError,
 )
 from backend.utils import params
-from rss_feed import check_feed
+from backend.utils import request_news
 
 
 def close_all_trades() -> None:
@@ -96,7 +96,7 @@ def check_closing_decision() -> None:
 
 def cycle(first=False) -> None:
     """Performs one full cycle of news checking and trade execution"""
-    new_news = check_feed.run(first)
+    new_news = request_news.check_news(first)
     if len(new_news) == 0:
         check_closing_decision()
         return
@@ -181,8 +181,7 @@ def cycle(first=False) -> None:
 def main(
     p2k: threading.Event = None, bot: telebot.TeleBot = None, personal_token: str = None
 ) -> None:
-    logger.add(
-        params.source_root / "source/log.txt",
+    logger.add("source/log.txt",
         format="<green>{time:DD.MM.YY HH:mm:ss}</green> | <level>{level: <8}</level>|<cyan>{function}</cyan> - <level>{message}</level>",
     )
     logger.info("Starting..")

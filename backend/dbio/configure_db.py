@@ -2,7 +2,7 @@ import datetime
 import json
 import os
 
-from backend.dbio import db_client
+import db_client
 
 if __name__ == "__main__":
 
@@ -10,6 +10,7 @@ if __name__ == "__main__":
     files = os.listdir(base_path)
 
     for trd in files:
+
         if ".json" in trd:
             with open(base_path + "/" + trd, "rb") as f:
                 _ = json.load(f)
@@ -21,4 +22,6 @@ if __name__ == "__main__":
                 _["CLOSE_TIME"] = datetime.datetime.fromisoformat(_["CLOSE_TIME"])
             except:
                 pass
+
+            print(trd)
             db_client.store_closed_trade(_)

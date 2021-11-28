@@ -1,8 +1,9 @@
 import datetime
+import os
 
 from pymongo import MongoClient
 
-client = MongoClient("localhost", 27017)
+client = MongoClient(os.getenv('MONGO_HOST'), 1002)
 dumps = client["trades"]["trade_dumps"]
 context = client["trades"]["context"]
 
