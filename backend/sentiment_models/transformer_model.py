@@ -1,6 +1,7 @@
 import json
-import requests
 import os
+
+import requests
 
 
 def predict(text: str) -> int:

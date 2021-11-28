@@ -3,10 +3,8 @@ import json
 import pathlib
 import typing
 
-import tinvest
-from loguru import logger
-
 import backend.utils
+import tinvest
 from backend import tinvest_api as api
 from backend.dbio import db_client as db
 from backend.sentiment_models import sentence_similarity as ss
@@ -15,6 +13,7 @@ from backend.telegram_bot import bot_poster
 from backend.trade_actions import exit_model as em
 from backend.trade_actions.context_cloud import ContextCloud
 from backend.utils import params
+from loguru import logger
 
 
 class StaleNewsException(Exception):

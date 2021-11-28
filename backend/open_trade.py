@@ -2,12 +2,10 @@ import datetime
 import threading
 import time
 
-import telebot
-from loguru import logger
-
 import backend.dbio as db
 import backend.flow_control as fc
 import backend.telegram_bot.bot_poster as tbot
+import telebot
 from backend.stats import trade_stats
 from backend.tinvest_api.functions import NoPriceError
 from backend.trade_actions.active_trades_cache import Cache
@@ -18,8 +16,8 @@ from backend.trade_actions.trade_entity_class import (
     ShallowSentimentError,
     ContextError,
 )
-from backend.utils import params
 from backend.utils import request_news
+from loguru import logger
 
 
 def close_all_trades() -> None:

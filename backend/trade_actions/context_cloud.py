@@ -1,8 +1,8 @@
 import datetime
-import numpy as np
-from backend.dbio.db_client import client
 
 import backend.sentiment_models.sentence_similarity as ss
+import numpy as np
+from backend.dbio.db_client import client
 from backend.utils import custom_now
 from backend.utils import params
 

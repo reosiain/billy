@@ -1,8 +1,9 @@
 import os
+import threading
 
 from fastapi import FastAPI
 from pydantic import BaseModel
-import threading
+
 import backend.open_trade
 
 app = FastAPI()

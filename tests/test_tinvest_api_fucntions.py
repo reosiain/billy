@@ -1,9 +1,8 @@
 import datetime
 
-import tinvest
-
 import backend.tinvest_api.functions as api
 import backend.utils
+import tinvest
 from backend.tinvest_api import TOKEN
 
 

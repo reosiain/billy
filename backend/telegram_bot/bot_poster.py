@@ -1,6 +1,6 @@
+import os
 import pathlib
 from enum import Enum
-import os
 
 import requests
 import telegram

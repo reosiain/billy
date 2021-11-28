@@ -1,7 +1,8 @@
-import os
-import requests
 import json
+import os
+
 import numpy as np
+import requests
 
 
 def sentiment_weighted_text_embedding(text, separator="|@|"):

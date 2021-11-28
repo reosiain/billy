@@ -3,9 +3,8 @@ import json
 import time
 from pathlib import Path
 
-import pandas as pd
-
 import backend.trade_actions.trade_entity_class as tr_cl
+import pandas as pd
 from backend.open_trade import check_closing_decision
 from backend.trade_actions.active_trades_cache import Cache
 

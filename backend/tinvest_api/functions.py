@@ -1,8 +1,7 @@
 import datetime
 
-from tinvest.schemas import CandleResolution
-
 import backend.utils
+from tinvest.schemas import CandleResolution
 
 
 class NoPriceError(Exception):

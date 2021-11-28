@@ -1,16 +1,15 @@
 import datetime
 import time
 
+import backend.utils.custom_now
 import numpy as np
 import pandas as pd
 import ta
 import tinvest
-from xgboost import XGBClassifier
-
-import backend.utils.custom_now
 from backend import tinvest_api as api
 from backend.tinvest_api.functions import get_candles_by_ticker
 from backend.utils import params
+from xgboost import XGBClassifier
 
 models_source_path = params.exit_model_path
 model = XGBClassifier()
