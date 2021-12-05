@@ -15,7 +15,7 @@ class Cache:
 
     @staticmethod
     def remove(trade):
-        cache.delete_one({'TEXT':trade.raw_text})
+        cache.delete_one({'TEXT': trade.raw_text})
 
     @staticmethod
     def count():
