@@ -3,10 +3,10 @@ import pathlib
 
 import backend.trade_actions.trade_entity_class
 from backend.dbio import db_client
-from backend.sentiment_models import sentence_similarity as ss
 from backend.stats import trade_stats
 from backend.trade_actions import exit_model as em
 from backend.trade_actions import trade_entity_class
+from backend.trade_actions import active_trades_cache as trd_cache
 from backend.trade_actions.context_cloud import ContextCloud
 
 text = """МОСКВА, 16 июл — ПРАЙМ. Сбербанк закрыл сделку по продаже акций материнской компании и долга "Евроцемента" 
@@ -128,3 +128,29 @@ def test_context(mocker):
         )
         ContextCloud._delete_entry(ticker=ticker, sentiment=sentiment, time=date)
         ContextCloud._delete_entry(ticker=ticker, sentiment=sentiment, time=date2)
+
+
+def test_cache_and_restoration(mocker):
+    print()
+    mocker.patch("backend.utils.custom_now.now", return_value=mocked_now())
+
+    global text
+
+    mock_trade_dict = {}
+    mock_trade_dict["NEWS_TIME"] = datetime.datetime.now().isoformat()
+    mock_trade_dict["TEXT"] = text
+    mock_trade_dict["TICKER"] = 'SBER'
+    mock_trade_dict["SENTIMENT"] = 2
+    mock_trade_dict["OPEN_TIME"] = (datetime.datetime.now() - datetime.timedelta(minutes=10)).isoformat()
+    mock_trade_dict["OPEN_PRICE"] = 300
+
+    ch = trd_cache.Cache()
+    init_count = len(ch.read())
+
+    trd = trade_entity_class.Trade(restored=True, restored_params=mock_trade_dict)
+    assert len(ch.read()) == init_count
+    ch.append(trd)
+    assert len(ch.read()) == init_count + 1
+    ch.remove(trd)
+    assert len(ch.read()) == init_count
+
