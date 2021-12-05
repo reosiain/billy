@@ -13,35 +13,8 @@ from backend.telegram_bot import bot_poster
 from backend.trade_actions import exit_model as em
 from backend.trade_actions.context_cloud import ContextCloud
 from backend.utils import params
+from backend.trade_actions.exceptions import *
 from loguru import logger
-
-
-class StaleNewsException(Exception):
-    pass
-
-
-class ShallowSentimentError(Exception):
-    """Predicted neutral sentiment"""
-
-    pass
-
-
-class NoTargetError(Exception):
-    """No ticker for the news"""
-
-    pass
-
-
-class MultiTargetError(Exception):
-    """Multiple companies mentioned in the article ticker for the news"""
-
-    pass
-
-
-class ContextError(Exception):
-    """Trade with similar context is already open"""
-
-    pass
 
 
 class Trade:
@@ -49,35 +22,55 @@ class Trade:
 
     def __init__(
         self,
-        time: typing.Union[str, datetime.datetime],
-        seq: str,
-        ticker: str,
+        time: typing.Union[str, datetime.datetime] = None,
+        seq: str = None,
+        ticker: str = None,
         sentiment: int = None,
-    ):
-        self.news_time = time
-        self.raw_text = seq
-        self.ticker_relation = ticker
-        if sentiment is None:
-            self.sentiment = sm.predict(seq)
+        restored=False,
+        **restored_params
+    ) -> None:
+
+        # Normal way to construct trade
+        if not restored:
+            if (time is None) or (seq is None) or (ticker is None):
+                raise ConstructionError('Missing parameters.')
+
+            self.news_time = time
+            self.raw_text = seq
+            self.ticker_relation = ticker
+            if sentiment is None:
+                self.sentiment = sm.predict(seq)
+            else:
+                self.sentiment = sentiment
+
+            if self.sentiment == 1:
+                raise ShallowSentimentError("Can't infer direction of trade")
+
+            new_context = self.check_context()
+            if not new_context:
+                raise ContextError("Similar context found in the context cloud")
+
+            self.trade_time = self._get_now()
+            self.open_price_apx = self._get_current_price()
+            self.need_to_close = False
+            self.stop_loss_trigger = False
+            self.reverse_closed = False
+            self.close_price_apx = None
+            self.close_time = None
+
         else:
-            self.sentiment = sentiment
-
-        if self.sentiment == 1:
-            raise ShallowSentimentError("Can't infer direction of trade")
-
-        new_context = self.check_context()
-        if not new_context:
-            raise ContextError("Similar context found in the context cloud")
-
-        self.trade_time = self._get_now()
-        self.open_price_apx = self._get_current_price()
-
-        self.need_to_close = False
-        self.stop_loss_trigger = False
-        self.reverse_closed = False
-
-        self.close_price_apx = None
-        self.close_time = None
+            restored_params = restored_params['restored_params']
+            self.news_time = datetime.datetime.fromisoformat(restored_params["NEWS_TIME"])
+            self.raw_text = restored_params["TEXT"]
+            self.ticker_relation = restored_params["TICKER"]
+            self.sentiment = 2 if restored_params["SENTIMENT"] == 'POSITIVE' else 0
+            self.trade_time = datetime.datetime.fromisoformat(restored_params["OPEN_TIME"])
+            self.open_price_apx = restored_params["OPEN_PRICE"]
+            self.need_to_close = False
+            self.stop_loss_trigger = False
+            self.reverse_closed = False
+            self.close_price_apx = None
+            self.close_time = None
 
     def __repr__(self):
         dir_ = "LONG" if self.sentiment == 2 else "SHORT"
@@ -195,7 +188,7 @@ class Trade:
             else:
                 return False
         else:
-            if diff >= params.stop_loss[1]:
+            if diff >= params.stop_5loss[1]:
                 self.stop_loss_trigger = True
                 return True
             else:
@@ -227,22 +220,43 @@ def trade_to_dict(trd: Trade) -> dict:
         trd_dict["NEWS_TIME"] = trd.news_time.isoformat()
     except AttributeError:
         trd_dict["NEWS_TIME"] = trd.news_time
-
-    trd_dict["CLOSE_TIME"] = trd.close_time.isoformat()
     try:
         trd_dict["UPTIME"] = (trd.close_time - trd.news_time).seconds
     except TypeError:
         trd_dict["UPTIME"] = None
+
+    trd_dict["CLOSE_TIME"] = trd.close_time.isoformat() if trd.close_time is not None else None
+    trd_dict["OPEN_TIME"] = trd.trade_time.isoformat() if trd.trade_time is not None else None
     trd_dict["TICKER"] = trd.ticker_relation
-    trd_dict["OPEN_PRICE"] = trd.open_price_apx
-    trd_dict["CLOSE_PRICE"] = trd.close_price_apx
+    trd_dict["OPEN_PRICE"] = trd.open_price_apx if trd.open_price_apx is not None else None
+    trd_dict["CLOSE_PRICE"] = trd.close_price_apx if trd.close_price_apx is not None else None
     trd_dict["SENTIMENT"] = "POSITIVE" if trd.sentiment == 2 else "NEGATIVE"
     modulo = 1 if trd.is_long else -1
-    trd_dict["ABSOLUTE_RETURN"] = round(trd.close_price_apx / trd.open_price_apx, 5)
-    trd_dict["CALCULATED_RETURN"] = round(
-        ((trd.close_price_apx / trd.open_price_apx) - 1) * modulo, 5
-    )
-    trd_dict["SUCCESSFUL_TRADE"] = True if trd_dict["CALCULATED_RETURN"] > 0 else False
+
+    if trd.close_price_apx is None:
+        trd_dict["ABSOLUTE_RETURN"] = None
+        trd_dict["CALCULATED_RETURN"] = None
+        trd_dict["TAG"] = 'Not closed'
+    elif trd.open_price_apx is None:
+        trd_dict["ABSOLUTE_RETURN"] = None
+        trd_dict["CALCULATED_RETURN"] = None
+        trd_dict["TAG"] = 'No opening price'
+    elif trd.open_price_apx is None and trd.close_price_apx is None:
+        trd_dict["ABSOLUTE_RETURN"] = None
+        trd_dict["CALCULATED_RETURN"] = None
+        trd_dict["TAG"] = 'No opening and closing price'
+    else:
+        trd_dict["ABSOLUTE_RETURN"] = round(trd.close_price_apx / trd.open_price_apx, 5)
+        trd_dict["CALCULATED_RETURN"] = round(
+            ((trd.close_price_apx / trd.open_price_apx) - 1) * modulo, 5
+        )
+
+    if trd_dict["CALCULATED_RETURN"] is not None:
+        trd_dict["SUCCESSFUL_TRADE"] = True if trd_dict["CALCULATED_RETURN"] > 0 else False
+    else:
+        trd_dict["SUCCESSFUL_TRADE"] = None
+        trd_dict["TAG"] = 'Unable to calculate return'
+
     trd_dict["IS_STOPLOSS"] = trd.stop_loss_trigger
     trd_dict["IS_REVERSED"] = trd.reverse_closed
     try:

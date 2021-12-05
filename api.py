@@ -5,9 +5,8 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 
 import backend.open_trade
-from backend.trade_actions.active_trades_cache import Cache
+from billy.backend.trade_actions.active_trades_cache import Cache
 from backend.stats import trade_stats
-import backend.telegram_bot as tg
 
 app = FastAPI()
 

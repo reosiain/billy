@@ -6,6 +6,8 @@ from pymongo import MongoClient
 client = MongoClient(os.getenv('MONGO_HOST'), 1002)
 dumps = client["trades"]["trade_dumps"]
 context = client["trades"]["context"]
+cache = client["trades"]["cache"]
+
 
 
 def store_closed_trade(trade: dict):

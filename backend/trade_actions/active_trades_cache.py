@@ -1,42 +1,23 @@
-import pickle
-
-from backend.utils import params
-from loguru import logger
+from backend.dbio.db_client import cache
+import backend.trade_actions.trade_entity_class as td
 
 
 class Cache:
     @staticmethod
     def read():
-        with open(params.pickle_cache, "rb") as f:
-            cache = pickle.load(f)
-        return cache
-
-    @staticmethod
-    def overwrite(thing):
-        if not isinstance(thing, list):
-            raise ValueError("Can only cache list")
-        with open(params.pickle_cache, "wb") as f:
-            pickle.dump(thing, f)
+        trades = list(cache.find())
+        return [td.Trade(restored=True, restored_params =params) for params in trades]
 
     @staticmethod
     def append(trade):
-        trades: list = Cache.read()
-        trades.append(trade)
-        Cache.overwrite(thing=trades)
+        dicted_trade = td.trade_to_dict(trade)
+        cache.insert_one(dicted_trade)
 
     @staticmethod
     def remove(trade):
-        trades: list = Cache.read()
-        trades_copy = trades.copy()
-        deleted = False
-        for trd in trades_copy:
-            cond1 = trd.ticker_relation == trade.ticker_relation
-            cond2 = trd.sentiment == trade.sentiment
-            cond3 = trd.news_time == trade.news_time
-            if cond1 and cond2 and cond3:
-                trades.remove(trd)
-                deleted = True
-                continue
-        if not deleted:
-            logger.debug("Trade is not cached, can't delete.")
-        Cache.overwrite(thing=trades)
+        cache.delete_one({'TEXT':trade.raw_text})
+
+    @staticmethod
+    def count():
+        return cache.count()
+
