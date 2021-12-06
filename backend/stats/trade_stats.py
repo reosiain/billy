@@ -1,17 +1,16 @@
 import datetime
 
-from backend import utils
+from backend.utils import custom_now
 from backend.dbio import db_client as db
 
 
 def get_daily_cum_return(period=0) -> float:
     """Returns cum return for period days ago. Zero period for todays return"""
 
-    start_date = utils.custom_now.now() - datetime.timedelta(days=period)
+    start_date = custom_now.now() - datetime.timedelta(days=period)
     start_date = datetime.datetime(start_date.year, start_date.month, start_date.day)
 
-    filter_ = {"CLOSE_TIME_low": start_date}
-    raw_trades = db.get_closed_trades(k=filter_)
+    raw_trades = list(db.dumps.find({'CLOSE_TIME': {'$gt': start_date}}).sort([('CLOSE_TIME', 1)]))
 
     trades = []
     for trade in raw_trades:
@@ -31,6 +30,9 @@ def get_daily_cum_return(period=0) -> float:
     cum = round(cum, 2)
     return round(cum - 100, 2)
 
+def fetch_latest_open_trades(n=5):
+    raw_trades = list(db.dumps.find().sort([('CLOSE_TIME', 1)]))
+    return raw_trades[-n:]
 
 if __name__ == "__main__":
     a = get_daily_cum_return()
