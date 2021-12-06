@@ -3,9 +3,9 @@ import threading
 
 from fastapi import FastAPI
 from pydantic import BaseModel
+from backend.dbio import db_client
 
 import backend.open_trade
-from backend.trade_actions.active_trades_cache import Cache
 from backend.stats import trade_stats
 
 app = FastAPI()
@@ -59,6 +59,7 @@ def shut():
 
     return {"message": "stopped"}
 
+
 @app.get("/billy/status")
 def status():
 
@@ -80,16 +81,6 @@ def shut():
     except Exception:
         return {"message": 'error'}
 
-@app.get("/billy/cache/read_names")
-def read_cache():
-    list_ = []
-    actives = Cache.read()
-    if len(actives) == 0:
-        return {"cache": []}
-    for item in actives:
-        list_.append(item.__str__())
-    return {"cache": list_}
-
 @app.get("/billy/stats/todays_return")
 def todays_return():
     val = trade_stats.get_daily_cum_return()
@@ -97,6 +88,20 @@ def todays_return():
 
 @app.get("/billy/ping")
 def list_source():
-    return {'payload':os.listdir('source')}
+    return {'payload': os.listdir('source')}
 
+#___ Mongo Reads
 
+@app.get("/billy/db/show_open")
+def show_open():
+    open_files = list(db_client.cache.find())
+    for file in open_files:
+        file.pop('_id')
+    return {'payload': open_files}
+
+@app.get("/billy/db/latest_closed")
+def show_open():
+    open_files = trade_stats.fetch_latest_open_trades()
+    for file in open_files:
+        file.pop('_id')
+    return {'payload': open_files}
