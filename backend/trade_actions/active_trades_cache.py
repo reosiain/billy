@@ -6,7 +6,7 @@ class Cache:
     @staticmethod
     def read():
         trades = list(cache.find())
-        return [td.Trade(restored=True, restored_params =params) for params in trades]
+        return [td.Trade(restored=True, restored_params=params) for params in trades]
 
     @staticmethod
     def append(trade):
@@ -15,7 +15,7 @@ class Cache:
 
     @staticmethod
     def remove(trade):
-        cache.delete_one({'TEXT':trade.raw_text})
+        cache.delete_one({'TEXT': trade.raw_text})
 
     @staticmethod
     def count():

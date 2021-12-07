@@ -188,7 +188,7 @@ class Trade:
             else:
                 return False
         else:
-            if diff >= params.stop_5loss[1]:
+            if diff >= params.stop_loss[1]:
                 self.stop_loss_trigger = True
                 return True
             else:

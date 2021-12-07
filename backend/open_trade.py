@@ -3,6 +3,7 @@ import threading
 import time
 
 import backend.dbio as db
+from backend.dbio import db_client
 import backend.flow_control as fc
 import backend.telegram_bot.bot_poster as tbot
 import telebot
@@ -16,7 +17,6 @@ from backend.trade_actions.trade_entity_class import (
     ShallowSentimentError,
     ContextError,
 )
-from backend.utils import request_news
 from loguru import logger
 
 
@@ -92,21 +92,23 @@ def check_closing_decision() -> None:
             continue
 
 
-def cycle(first=False) -> None:
+def cycle() -> None:
     """Performs one full cycle of news checking and trade execution"""
-    new_news = request_news.check_news(first)
+    new_news = db_client.read_fresh_news()
+
     if len(new_news) == 0:
         check_closing_decision()
         return
 
     for news in new_news:
-        db.db_client.store_news(news)
+        db_client.remove_from_fresh(news)
 
-    # Get rid of news with wrong date format and then sort by time
-    ch_new_news = new_news.copy()
-    for news in ch_new_news:
+    # Remove broken dt
+    aux = new_news.copy()
+    for news in aux:
         if not isinstance(news["time"], datetime.datetime):
             new_news.remove(news)
+
     new_news = sorted(new_news, key=lambda x: x["time"])
 
     for event in new_news:
@@ -183,13 +185,11 @@ def main(
         format="<green>{time:DD.MM.YY HH:mm:ss}</green> | <level>{level: <8}</level>|<cyan>{function}</cyan> - <level>{message}</level>",
     )
     logger.info("Starting..")
-    first_run = True
     if p2k is None:
         while True:
             try:
                 logger.debug("New cycle")
-                cycle(first=first_run)
-                first_run = False
+                cycle()
                 time.sleep(20)
             except Exception as error:
                 logger.exception(f"Unexpected error. {error}")
@@ -198,8 +198,7 @@ def main(
         while not p2k.is_set():
             try:
                 logger.debug("New cycle")
-                cycle(first=first_run)
-                first_run = False
+                cycle()
                 time.sleep(20)
             except Exception as error:
                 logger.exception(f"Unexpected error. {error}")

@@ -7,7 +7,7 @@ client = MongoClient(os.getenv('MONGO_HOST'), 1002)
 dumps = client["trades"]["trade_dumps"]
 context = client["trades"]["context"]
 cache = client["trades"]["cache"]
-
+new_news = client["news"]["fresh"]
 
 
 def store_closed_trade(trade: dict):
@@ -73,28 +73,9 @@ def _remove_closed_trade(trade: dict):
     dumps.delete_one(trade)
 
 
-# ______________News storage
-
-news_rss = client["news"]["from_feed"]
-detailed_news = client["news"]["detailed_news"]
+def read_fresh_news():
+    return list(new_news.find())
 
 
-def read_cached_rss_links() -> set:
-    """returns all processed links from db"""
-    global news_rss
-    res = news_rss.find({})
-    output = set()
-    for elem in res:
-        output.add(elem["link"])
-    return output
-
-
-def store_rss_link(link):
-    global news_rss
-    data = {"link": link, "dt": datetime.datetime.now()}
-    news_rss.insert_one(data)
-
-
-def store_news(news: dict):
-    global detailed_news
-    detailed_news.insert_one(news)
+def remove_from_fresh(news):
+    new_news.delete_one({"link": news['link']})
