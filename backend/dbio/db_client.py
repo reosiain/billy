@@ -10,6 +10,7 @@ cache = client["trades"]["cache"]
 new_news = client["news"]["fresh"]
 
 
+
 def store_closed_trade(trade: dict):
     """Stores dict with closed trade in db"""
     global dumps
