@@ -13,4 +13,4 @@ similarity_threshold = 0.85
 exit_model_path = pathlib.Path("source/models/exit_xgb/xgboost_model_10_c.json")
 
 # backend.trade_actions.exit_model
-stop_loss = (0.99, 1.01)
+stop_loss = (0.995, 1.005)
