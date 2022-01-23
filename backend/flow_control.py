@@ -51,7 +51,7 @@ def should_open(trade: Trade) -> typing.Tuple[bool, float]:
         )
 
         _ = trade_to_dict(trade)
-        f_name = f"{_.ticker_relation}_{_.close_time.strftime('%d%m%Y_%H%M%S')}_{_.sentiment}.json"
+        f_name = f"{trade.ticker_relation}_{trade.close_time.strftime('%d%m%Y_%H%M%S')}_{trade.sentiment}.json"
         with open(params.trades_dump / f_name, "w") as file:
             json.dump(trade, file)
         Cache.remove(trd)

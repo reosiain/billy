@@ -186,6 +186,7 @@ def main(
     )
     logger.info("Starting..")
     if p2k is None:
+        #db_client.refresh_fresh()
         while True:
             try:
                 logger.debug("New cycle")
@@ -195,6 +196,7 @@ def main(
                 logger.exception(f"Unexpected error. {error}")
                 continue
     else:
+        #db_client.refresh_fresh()
         while not p2k.is_set():
             try:
                 logger.debug("New cycle")
